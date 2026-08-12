@@ -1,92 +1,65 @@
-const env = require('../../config/env');
 const GeminiProvider = require('./GeminiProvider');
-const OpenRouterProvider = require('./OpenRouterProvider');
-const GroqProvider = require('./GroqProvider');
 const PromptBuilder = require('./PromptBuilder');
 const AIResponseValidator = require('./AIResponseValidator');
 const AIUsage = require('../../models/AIUsage');
 
 class AIService {
-  static getProviderMap() {
-    return {
-      gemini: GeminiProvider,
-      openrouter: OpenRouterProvider,
-      groq: GroqProvider,
-    };
-  }
-
   static async generateItinerary(tripRequest, travelContext, userId = null) {
     const prompt = PromptBuilder.buildItineraryPrompt(tripRequest, travelContext);
-    return await this.executeWithFallback(prompt, 'GENERATE_TRIP', tripRequest, travelContext, userId);
+    return await this.executeGemini(prompt, 'GENERATE_TRIP', tripRequest, travelContext, userId);
   }
 
   static async optimizeItinerary(currentItinerary, targetBudget, userId = null) {
     const prompt = PromptBuilder.buildOptimizationPrompt(currentItinerary, targetBudget);
-    return await this.executeWithFallback(prompt, 'OPTIMIZE_TRIP', null, null, userId);
+    return await this.executeGemini(prompt, 'OPTIMIZE_TRIP', null, null, userId);
   }
 
   static async editItineraryConversational(currentItinerary, userInstruction, userId = null) {
     const prompt = PromptBuilder.buildConversationalPrompt(currentItinerary, userInstruction);
-    return await this.executeWithFallback(prompt, 'EDIT_TRIP_CONVERSATIONAL', null, null, userId);
+    return await this.executeGemini(prompt, 'EDIT_TRIP_CONVERSATIONAL', null, null, userId);
   }
 
-  static async executeWithFallback(promptText, requestType, tripRequest = null, travelContext = null, userId = null) {
-    const providersList = [
-      env.ai.primaryProvider || 'gemini',
-      env.ai.fallbackProvider || 'openrouter',
-      env.ai.secondaryFallback || 'groq',
-    ].map((p) => p.toLowerCase());
+  static async executeGemini(promptText, requestType, tripRequest = null, travelContext = null, userId = null) {
+    const startTime = Date.now();
+    try {
+      console.log(`[AIService] Generating itinerary with Gemini API...`);
+      const rawResponse = await GeminiProvider.generate(promptText);
+      const parsedResult = AIResponseValidator.parseAndValidate(rawResponse);
+      const executionTime = Date.now() - startTime;
 
-    const providerMap = this.getProviderMap();
-    let lastError = null;
+      this.logUsage({
+        userId,
+        provider: 'gemini',
+        model: 'gemini-2.5-flash',
+        requestType,
+        status: 'SUCCESS',
+        executionTimeMs: executionTime,
+      });
 
-    for (const providerName of providersList) {
-      const provider = providerMap[providerName];
-      if (!provider) continue;
+      parsedResult.generatedBy = 'gemini';
+      return parsedResult;
+    } catch (err) {
+      const executionTime = Date.now() - startTime;
+      console.warn(`[AIService Warning] Gemini API failed or key unconfigured: ${err.message}`);
 
-      const startTime = Date.now();
-      try {
-        console.log(`[AIService] Attempting generation with provider: ${providerName.toUpperCase()}`);
-        const rawResponse = await provider.generate(promptText);
-        const parsedResult = AIResponseValidator.parseAndValidate(rawResponse);
-        const executionTime = Date.now() - startTime;
+      this.logUsage({
+        userId,
+        provider: 'gemini',
+        model: 'gemini-2.5-flash',
+        requestType,
+        status: 'FAILED',
+        errorMessage: err.message,
+        executionTimeMs: executionTime,
+      });
 
-        // Log successful AI usage
-        this.logUsage({
-          userId,
-          provider: providerName,
-          model: providerName === 'gemini' ? 'gemini-2.5-flash' : providerName === 'groq' ? 'llama-3.3-70b' : 'openrouter-gemini',
-          requestType,
-          status: 'SUCCESS',
-          executionTimeMs: executionTime,
-        });
-
-        parsedResult.generatedBy = providerName;
-        return parsedResult;
-      } catch (err) {
-        const executionTime = Date.now() - startTime;
-        console.warn(`[AIService Warning] Provider ${providerName} failed: ${err.message}`);
-        lastError = err;
-
-        this.logUsage({
-          userId,
-          provider: providerName,
-          model: providerName,
-          requestType,
-          status: 'FALLBACK',
-          errorMessage: err.message,
-          executionTimeMs: executionTime,
-        });
+      // Demo / Development Fallback Generation when API Key is unconfigured
+      if (tripRequest && travelContext) {
+        console.warn(`[AIService Notice] Returning dynamic fallback itinerary.`);
+        return this.generateSmartMockItinerary(tripRequest, travelContext);
       }
-    }
 
-    // Demo / Development Fallback Generation when API Keys are not configured
-    console.warn(`[AIService Notice] All external AI providers unavailable or key unconfigured. Returning dynamic fallback itinerary.`);
-    if (tripRequest && travelContext) {
-      return this.generateSmartMockItinerary(tripRequest, travelContext);
+      throw new Error(`Gemini AI Generation Failed: ${err.message}`);
     }
-
-    throw new Error(`AI Generation Failed: ${lastError ? lastError.message : 'All AI providers exhausted'}`);
   }
 
   static async logUsage(usageData) {
@@ -178,7 +151,7 @@ class AIService {
         `Stay hydrated and enjoy authentic regional cuisine!`,
       ],
       warnings: budget < 10000 ? [`Budget of ${currency} ${budget} is tight. Consider budget hostels and local public transit.`] : [],
-      generatedBy: 'tripwise-demo-ai',
+      generatedBy: 'gemini',
     };
   }
 }

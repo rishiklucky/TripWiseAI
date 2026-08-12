@@ -130,9 +130,9 @@ export const Home = () => {
             <div className="col-lg-4 col-md-6">
               <div className="tw-card p-4 h-100">
                 <i className="bi bi-cpu-fill fs-2 text-primary mb-3 d-block"></i>
-                <h5 className="fw-bold mb-2">Triple-Tier AI Fallback</h5>
+                <h5 className="fw-bold mb-2">Google Gemini 2.5 AI Engine</h5>
                 <p className="text-muted small">
-                  Powered by Gemini 2.5 Flash as primary, with automatic zero-downtime failover to OpenRouter and Groq providers.
+                  Powered by Google Gemini 2.5 Flash API for ultra-fast, structured, budget-aware day-by-day travel planning.
                 </p>
               </div>
             </div>

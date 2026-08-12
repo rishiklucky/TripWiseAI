@@ -34,9 +34,7 @@ export const Footer = () => {
           </div>
           <div className="col-lg-4">
             <h6 className="fw-semibold mb-3">Travel Tech Architecture</h6>
-            <span className="badge bg-secondary me-2 mb-2">Gemini AI</span>
-            <span className="badge bg-secondary me-2 mb-2">OpenRouter Fallback</span>
-            <span className="badge bg-secondary me-2 mb-2">Groq Acceleration</span>
+            <span className="badge bg-secondary me-2 mb-2">Google Gemini AI</span>
             <span className="badge bg-secondary me-2 mb-2">MongoDB Atlas</span>
             <span className="badge bg-secondary me-2 mb-2">REST API Engine</span>
           </div>

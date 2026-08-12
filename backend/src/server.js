@@ -10,8 +10,7 @@ const startServer = async () => {
   app.listen(PORT, () => {
     console.log(`====================================================`);
     console.log(`🚀 TripWise AI Backend Server running on port ${PORT}`);
-    console.log(`🌐 Primary AI Provider: ${env.ai.primaryProvider.toUpperCase()}`);
-    console.log(`🔄 Fallback AI Providers: ${env.ai.fallbackProvider.toUpperCase()}, ${env.ai.secondaryFallback.toUpperCase()}`);
+    console.log(`🌐 AI Provider Engine: ${env.ai.provider.toUpperCase()}`);
     console.log(`====================================================`);
   });
 };
