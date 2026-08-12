@@ -9,8 +9,8 @@ export const Navbar = () => {
   return (
     <nav className="navbar navbar-expand-lg tw-navbar sticky-top py-3">
       <div className="container">
-        <Link to="/" className="tw-nav-logo text-decoration-none">
-          <i className="bi bi-compass-fill text-teal text-primary"></i>
+        <Link to="/" className="tw-nav-logo text-decoration-none d-flex align-items-center gap-2">
+          <img src="/tripwise_ai_logo.png" alt="TripWise AI" style={{ height: '34px', width: 'auto' }} />
           <span>TripWise<span style={{ color: 'var(--tw-teal)' }}>.AI</span></span>
         </Link>
 
