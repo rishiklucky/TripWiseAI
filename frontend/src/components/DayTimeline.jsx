@@ -3,7 +3,7 @@ import { ActivityCard } from './ActivityCard';
 import { WeatherCard } from './WeatherCard';
 
 export const DayTimeline = ({ day = {}, currency = 'INR' }) => {
-  const { dayNumber, date, title, summary, weather, activities = [], meals = {}, transportation = [] } = day;
+  const { dayNumber, date, title, summary, weather, activities = [] } = day;
 
   return (
     <div className="tw-card p-4 mb-4">
@@ -27,32 +27,6 @@ export const DayTimeline = ({ day = {}, currency = 'INR' }) => {
             <ActivityCard activity={act} currency={currency} />
           </div>
         ))}
-      </div>
-
-      {/* Meals & Transportation */}
-      <div className="row g-3 mt-2 pt-3 border-top">
-        <div className="col-md-6">
-          <h6 className="fw-semibold text-muted small mb-2"><i className="bi bi-cup-straw me-1"></i> Recommended Meals</h6>
-          <div className="bg-light p-2 rounded small">
-            {meals.breakfast && <div><strong>Breakfast:</strong> {meals.breakfast.title} ({currency} {meals.breakfast.estimatedCost})</div>}
-            {meals.lunch && <div><strong>Lunch:</strong> {meals.lunch.title} ({currency} {meals.lunch.estimatedCost})</div>}
-            {meals.dinner && <div><strong>Dinner:</strong> {meals.dinner.title} ({currency} {meals.dinner.estimatedCost})</div>}
-          </div>
-        </div>
-        <div className="col-md-6">
-          <h6 className="fw-semibold text-muted small mb-2"><i className="bi bi-bus-front me-1"></i> Daily Transport</h6>
-          <div className="bg-light p-2 rounded small">
-            {transportation.length > 0 ? (
-              transportation.map((t, i) => (
-                <div key={i}>
-                  <strong>{t.type}:</strong> {t.from} → {t.to} ({currency} {t.estimatedCost})
-                </div>
-              ))
-            ) : (
-              <span className="text-muted">Local walking & rideshares.</span>
-            )}
-          </div>
-        </div>
       </div>
     </div>
   );

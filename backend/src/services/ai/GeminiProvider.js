@@ -10,35 +10,55 @@ class GeminiProvider {
       throw error;
     }
 
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`;
+    // List of models with gemini-3.5-flash as primary
+    const primaryModel = env.ai.geminiModel || 'gemini-3.5-flash';
+    const modelsToTry = Array.from(new Set([
+      primaryModel,
+      'gemini-3.5-flash',
+      'gemini-1.5-flash',
+      'gemini-2.0-flash',
+      'gemini-2.5-flash',
+    ]));
 
-    const payload = {
-      contents: [
-        {
-          parts: [{ text: promptText }],
+    let lastError = null;
+
+    for (const model of modelsToTry) {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+      const payload = {
+        contents: [
+          {
+            parts: [{ text: promptText }],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.4,
+          responseMimeType: 'application/json',
         },
-      ],
-      generationConfig: {
-        temperature: 0.4,
-        responseMimeType: 'application/json',
-      },
-    };
+      };
 
-    try {
-      const response = await axios.post(endpoint, payload, { timeout: 30000 });
-      const candidates = response.data?.candidates;
-      if (!candidates || candidates.length === 0) {
-        throw new Error('Empty response from Gemini API');
+      try {
+        console.log(`[GeminiProvider] Requesting AI completion using model: ${model}...`);
+        const response = await axios.post(endpoint, payload, { timeout: 60000 });
+        const candidates = response.data?.candidates;
+        if (!candidates || candidates.length === 0) {
+          throw new Error('Empty response from Gemini API');
+        }
+        const text = candidates[0]?.content?.parts?.[0]?.text;
+        if (text) {
+          return text;
+        }
+      } catch (err) {
+        lastError = err;
+        console.warn(`[GeminiProvider Warning] Model ${model} failed: ${err.message}. Trying next fallback if available...`);
       }
-      const text = candidates[0]?.content?.parts?.[0]?.text;
-      return text;
-    } catch (err) {
-      const status = err.response?.status || 500;
-      const message = err.response?.data?.error?.message || err.message;
-      const error = new Error(`Gemini Provider Error (${status}): ${message}`);
-      error.statusCode = status;
-      throw error;
     }
+
+    const status = lastError?.response?.status || 500;
+    const message = lastError?.response?.data?.error?.message || lastError?.message || 'Gemini API timeout or error';
+    const error = new Error(`Gemini Provider Error (${status}): ${message}`);
+    error.statusCode = status;
+    throw error;
   }
 }
 

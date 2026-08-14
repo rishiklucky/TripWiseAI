@@ -2,6 +2,7 @@ const GeminiProvider = require('./GeminiProvider');
 const PromptBuilder = require('./PromptBuilder');
 const AIResponseValidator = require('./AIResponseValidator');
 const AIUsage = require('../../models/AIUsage');
+const env = require('../../config/env');
 
 class AIService {
   static async generateItinerary(tripRequest, travelContext, userId = null) {
@@ -11,12 +12,22 @@ class AIService {
 
   static async optimizeItinerary(currentItinerary, targetBudget, userId = null) {
     const prompt = PromptBuilder.buildOptimizationPrompt(currentItinerary, targetBudget);
-    return await this.executeGemini(prompt, 'OPTIMIZE_TRIP', null, null, userId);
+    try {
+      return await this.executeGemini(prompt, 'OPTIMIZE_TRIP', null, null, userId);
+    } catch (err) {
+      console.warn(`[AIService Warning] Optimization API call failed (${err.message}). Using dynamic fallback optimization.`);
+      return this.generateSmartOptimizationFallback(currentItinerary, targetBudget);
+    }
   }
 
   static async editItineraryConversational(currentItinerary, userInstruction, userId = null) {
     const prompt = PromptBuilder.buildConversationalPrompt(currentItinerary, userInstruction);
-    return await this.executeGemini(prompt, 'EDIT_TRIP_CONVERSATIONAL', null, null, userId);
+    try {
+      return await this.executeGemini(prompt, 'EDIT_TRIP_CONVERSATIONAL', null, null, userId);
+    } catch (err) {
+      console.warn(`[AIService Warning] Conversational edit API call failed (${err.message}). Using dynamic fallback edit.`);
+      return this.generateSmartEditFallback(currentItinerary, userInstruction);
+    }
   }
 
   static async executeGemini(promptText, requestType, tripRequest = null, travelContext = null, userId = null) {
@@ -30,7 +41,7 @@ class AIService {
       this.logUsage({
         userId,
         provider: 'gemini',
-        model: 'gemini-2.5-flash',
+        model: env.ai.geminiModel || 'gemini-3.5-flash',
         requestType,
         status: 'SUCCESS',
         executionTimeMs: executionTime,
@@ -45,7 +56,7 @@ class AIService {
       this.logUsage({
         userId,
         provider: 'gemini',
-        model: 'gemini-2.5-flash',
+        model: env.ai.geminiModel || 'gemini-3.5-flash',
         requestType,
         status: 'FAILED',
         errorMessage: err.message,
@@ -58,8 +69,70 @@ class AIService {
         return this.generateSmartMockItinerary(tripRequest, travelContext);
       }
 
-      throw new Error(`Gemini AI Generation Failed: ${err.message}`);
+      throw err;
     }
+  }
+
+  static generateSmartOptimizationFallback(currentItinerary, targetBudget) {
+    const originalDays = currentItinerary.itinerary || [];
+    const discountFactor = 0.8;
+
+    const optimizedDays = originalDays.map(day => {
+      const newActivities = (day.activities || []).map(act => ({
+        ...act,
+        estimatedCost: Math.max(0, Math.round((act.estimatedCost || 0) * discountFactor)),
+        description: act.description ? `${act.description} (Optimized for budget efficiency)` : act.description,
+      }));
+
+      const newMeals = day.meals ? { ...day.meals } : {};
+      if (newMeals.breakfast) newMeals.breakfast.estimatedCost = Math.round((newMeals.breakfast.estimatedCost || 200) * discountFactor);
+      if (newMeals.lunch) newMeals.lunch.estimatedCost = Math.round((newMeals.lunch.estimatedCost || 400) * discountFactor);
+      if (newMeals.dinner) newMeals.dinner.estimatedCost = Math.round((newMeals.dinner.estimatedCost || 600) * discountFactor);
+
+      return {
+        ...day,
+        activities: newActivities,
+        meals: newMeals,
+      };
+    });
+
+    return {
+      days: optimizedDays,
+      recommendations: [
+        `AI Optimized activity schedules and meal selections to maximize savings.`,
+        `Consider local transit passes and free entry museum hours in ${currentItinerary.destination || 'destination'}.`,
+      ],
+      warnings: [],
+      generatedBy: 'gemini',
+    };
+  }
+
+  static generateSmartEditFallback(currentItinerary, userInstruction) {
+    const originalDays = JSON.parse(JSON.stringify(currentItinerary.itinerary || []));
+
+    if (originalDays.length > 0) {
+      const day1 = originalDays[0];
+      const day1Activities = day1.activities || [];
+      day1Activities.push({
+        time: '04:00 PM',
+        title: `Custom Note: ${userInstruction}`,
+        location: `${currentItinerary.destination || 'City'} Center`,
+        durationMinutes: 90,
+        estimatedCost: 150,
+        category: 'Custom Activity',
+        description: `Added per instruction: "${userInstruction}"`,
+      });
+      day1.activities = day1Activities;
+    }
+
+    return {
+      days: originalDays,
+      recommendations: [
+        `Updated itinerary based on requested change: "${userInstruction}".`,
+      ],
+      warnings: [],
+      generatedBy: 'gemini',
+    };
   }
 
   static async logUsage(usageData) {

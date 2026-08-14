@@ -537,18 +537,49 @@ organized the trip for the user.
 `;
   }
 
+  static condenseItinerary(currentItinerary) {
+    if (!currentItinerary) return {};
+    return {
+      destination: currentItinerary.destination,
+      origin: currentItinerary.origin,
+      durationDays: currentItinerary.durationDays,
+      currency: currentItinerary.currency || 'INR',
+      targetBudget: currentItinerary.budget,
+      travelStyle: currentItinerary.travelStyle,
+      days: (currentItinerary.itinerary || []).map(day => ({
+        dayNumber: day.dayNumber,
+        date: day.date,
+        title: day.title,
+        summary: day.summary,
+        activities: (day.activities || []).map(act => ({
+          time: act.time,
+          title: act.title,
+          location: act.location,
+          durationMinutes: act.durationMinutes,
+          estimatedCost: act.estimatedCost,
+          category: act.category,
+          description: act.description,
+        })),
+        meals: day.meals,
+        transportation: day.transportation,
+      })),
+    };
+  }
+
   static buildOptimizationPrompt(currentItinerary, targetBudget) {
+    const condensed = this.condenseItinerary(currentItinerary);
+
     return `
 You are TripWise AI, an expert travel itinerary optimizer.
 
 The user wants to reduce the cost of their existing trip to:
-${currentItinerary.destination}
+${currentItinerary.destination || 'Destination'}
 
 Target Budget:
-${currentItinerary.currency} ${targetBudget}
+${currentItinerary.currency || 'INR'} ${targetBudget}
 
 CURRENT ITINERARY:
-${JSON.stringify(currentItinerary)}
+${JSON.stringify(condensed)}
 
 PRIMARY OBJECTIVE:
 
@@ -585,26 +616,28 @@ Use supplied costs where available and clearly mark estimates.
 If reaching the target budget is impossible without significantly changing
 the trip, keep the best possible itinerary and explain the limitation.
 
-Return ONLY valid JSON using the EXACT same structure as the current itinerary.
+Return ONLY valid JSON using the EXACT structure: { "days": [...], "recommendations": [...], "warnings": [...] }
 
 Do NOT return Markdown or explanatory text outside the JSON.
 `;
   }
 
   static buildConversationalPrompt(currentItinerary, userInstruction) {
+    const condensed = this.condenseItinerary(currentItinerary);
+
     return `
 You are TripWise AI, an intelligent travel itinerary editor.
 
 The user wants to modify an existing itinerary.
 
 DESTINATION:
-${currentItinerary.destination}
+${currentItinerary.destination || 'Destination'}
 
 USER REQUEST:
 "${userInstruction}"
 
 CURRENT ITINERARY:
-${JSON.stringify(currentItinerary)}
+${JSON.stringify(condensed)}
 
 YOUR TASK:
 
@@ -628,9 +661,7 @@ IMPORTANT RULES:
 12. Keep the itinerary easy to understand.
 13. Recalculate affected costs when necessary.
 
-Return ONLY the complete updated itinerary as valid JSON.
-
-Use the EXACT same JSON structure as the current itinerary.
+Return ONLY valid JSON using the EXACT structure: { "days": [...], "recommendations": [...], "warnings": [...] }
 
 Do NOT return Markdown or any text outside the JSON object.
 `;
