@@ -110,3 +110,65 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0.35em 0.75em;
   border-radius: 6px;
 }
+
+/* Print Stylesheet for High-Quality PDF Export */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-family: 'Inter', system-ui, sans-serif !important;
+  }
+
+  nav,
+  footer,
+  .no-print,
+  .navbar,
+  .btn,
+  .modal-backdrop,
+  .modal-header,
+  .map-view-card,
+  iframe,
+  .alert-dismissible {
+    display: none !important;
+  }
+
+  .no-print-modal-wrap {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .modal-dialog,
+  .modal-content,
+  .modal-body {
+    background: #ffffff !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .pdf-document-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .pdf-day-block {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}

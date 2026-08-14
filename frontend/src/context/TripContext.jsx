@@ -18,11 +18,11 @@ export const TripProvider = ({ children }) => {
     foodPreference: 'No Preference',
     accommodationPreference: 'Hotel',
     transportationPreference: 'No Preference',
-    mustVisit: ['Baga Beach', 'Fort Aguada'],
+    mustVisit: [],
     placesToAvoid: [],
     specialOccasion: 'Normal Trip',
     accessibilityRequirements: [],
-    additionalNotes: 'Looking for romantic beach views and relaxed vibes.',
+    additionalNotes: '',
   });
 
   return (

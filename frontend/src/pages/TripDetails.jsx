@@ -9,6 +9,7 @@ import { MapView } from '../components/MapView';
 import { HotelCard } from '../components/HotelCard';
 import { TransportCard } from '../components/TransportCard';
 import { AskTripWiseModal } from '../components/AskTripWiseModal';
+import { ItineraryPDFModal } from '../components/ItineraryPDFModal';
 
 export const TripDetails = () => {
   const location = useLocation();
@@ -19,6 +20,7 @@ export const TripDetails = () => {
   const [trip, setTrip] = useState(location.state?.trip || activeTrip);
   const [loadingAction, setLoadingAction] = useState('');
   const [isAskModalOpen, setIsAskModalOpen] = useState(false);
+  const [isPDFModalOpen, setIsPDFModalOpen] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   useEffect(() => {
@@ -207,8 +209,8 @@ export const TripDetails = () => {
               <i className="bi bi-bookmark-fill me-1"></i> {saveSuccess ? 'Saved!' : 'Save Trip'}
             </button>
 
-            <button className="btn btn-outline-light btn-sm px-3" onClick={() => window.print()}>
-              <i className="bi bi-printer me-1"></i> Print / PDF
+            <button className="btn btn-outline-light btn-sm px-3" onClick={() => setIsPDFModalOpen(true)}>
+              <i className="bi bi-file-earmark-pdf me-1"></i> Custom PDF / Print
             </button>
           </div>
         </div>
@@ -301,6 +303,13 @@ export const TripDetails = () => {
         onClose={() => setIsAskModalOpen(false)}
         onApplyInstruction={handleConversationalEdit}
         loading={loadingAction === 'editing'}
+      />
+
+      {/* Customized PDF Document & Print Preview Modal */}
+      <ItineraryPDFModal
+        isOpen={isPDFModalOpen}
+        onClose={() => setIsPDFModalOpen(false)}
+        trip={trip}
       />
     </div>
   );

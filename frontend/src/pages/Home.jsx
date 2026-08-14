@@ -190,18 +190,6 @@ export const Home = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-5 bg-primary text-white text-center">
-        <div className="container py-4">
-          <h2 className="fw-extrabold text-white mb-3">Ready to Experience AI Travel Intelligence?</h2>
-          <p className="lead text-light opacity-90 mb-4 mx-auto" style={{ maxWidth: '600px' }}>
-            Generate your custom day-by-day itinerary in seconds. It's fast, realistic, and budget-optimized.
-          </p>
-          <button onClick={() => navigate('/create')} className="btn btn-teal-tw btn-lg px-5 py-3 fs-5">
-            <i className="bi bi-airplane-engines me-2"></i> Build My Itinerary Now
-          </button>
-        </div>
-      </section>
     </div>
   );
 };
