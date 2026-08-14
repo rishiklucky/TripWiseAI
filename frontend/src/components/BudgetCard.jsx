@@ -120,10 +120,10 @@ export const BudgetCard = ({ budgetBreakdown = {}, currency = 'INR', onOptimize 
             style={{ backgroundColor: '#f8fafc', borderColor: '#e2e8f0', borderRadius: '12px' }}
           >
             <i className="bi bi-house-door text-primary fs-4 fs-sm-3 mb-1 mb-sm-2"></i>
-            <span className="fw-medium d-block mb-1" style={{ color: '#475569', fontSize: '0.85rem' }}>Stay</span>
+            <span className="fw-medium d-block mb-1 text-center" style={{ color: '#475569', fontSize: '0.8rem', lineHeight: '1.2' }}>Stay</span>
             <div className="lh-1">
-              <span className="d-block fw-bold text-dark" style={{ color: '#0f172a', fontSize: '0.8rem' }}>{currency}</span>
-              <strong className="fw-extrabold text-dark" style={{ color: '#0f172a', fontSize: '1rem' }}>
+              <span className="d-block fw-bold text-dark" style={{ color: '#0f172a', fontSize: '0.75rem' }}>{currency}</span>
+              <strong className="fw-extrabold text-dark" style={{ color: '#0f172a', fontSize: '0.95rem' }}>
                 {accommodation.toLocaleString()}
               </strong>
             </div>
@@ -137,10 +137,10 @@ export const BudgetCard = ({ budgetBreakdown = {}, currency = 'INR', onOptimize 
             style={{ backgroundColor: '#f8fafc', borderColor: '#e2e8f0', borderRadius: '12px' }}
           >
             <i className="bi bi-cup-hot text-danger fs-4 fs-sm-3 mb-1 mb-sm-2"></i>
-            <span className="fw-medium d-block mb-1" style={{ color: '#475569', fontSize: '0.85rem' }}>Food</span>
+            <span className="fw-medium d-block mb-1 text-center" style={{ color: '#475569', fontSize: '0.8rem', lineHeight: '1.2' }}>Food</span>
             <div className="lh-1">
-              <span className="d-block fw-bold text-dark" style={{ color: '#0f172a', fontSize: '0.8rem' }}>{currency}</span>
-              <strong className="fw-extrabold text-dark" style={{ color: '#0f172a', fontSize: '1rem' }}>
+              <span className="d-block fw-bold text-dark" style={{ color: '#0f172a', fontSize: '0.75rem' }}>{currency}</span>
+              <strong className="fw-extrabold text-dark" style={{ color: '#0f172a', fontSize: '0.95rem' }}>
                 {food.toLocaleString()}
               </strong>
             </div>
@@ -154,10 +154,10 @@ export const BudgetCard = ({ budgetBreakdown = {}, currency = 'INR', onOptimize 
             style={{ backgroundColor: '#f8fafc', borderColor: '#e2e8f0', borderRadius: '12px' }}
           >
             <i className="bi bi-car-front text-info fs-4 fs-sm-3 mb-1 mb-sm-2"></i>
-            <span className="fw-medium d-block mb-1 text-truncate w-100" style={{ color: '#475569', fontSize: '0.85rem' }}>Transport</span>
+            <span className="fw-medium d-block mb-1 text-center" style={{ color: '#475569', fontSize: '0.8rem', lineHeight: '1.2' }}>Transport</span>
             <div className="lh-1">
-              <span className="d-block fw-bold text-dark" style={{ color: '#0f172a', fontSize: '0.8rem' }}>{currency}</span>
-              <strong className="fw-extrabold text-dark" style={{ color: '#0f172a', fontSize: '1rem' }}>
+              <span className="d-block fw-bold text-dark" style={{ color: '#0f172a', fontSize: '0.75rem' }}>{currency}</span>
+              <strong className="fw-extrabold text-dark" style={{ color: '#0f172a', fontSize: '0.95rem' }}>
                 {transportation.toLocaleString()}
               </strong>
             </div>
@@ -171,10 +171,10 @@ export const BudgetCard = ({ budgetBreakdown = {}, currency = 'INR', onOptimize 
             style={{ backgroundColor: '#f8fafc', borderColor: '#e2e8f0', borderRadius: '12px' }}
           >
             <i className="bi bi-ticket-perforated text-warning fs-4 fs-sm-3 mb-1 mb-sm-2"></i>
-            <span className="fw-medium d-block mb-1 text-truncate w-100" style={{ color: '#475569', fontSize: '0.85rem' }}>Activities</span>
+            <span className="fw-medium d-block mb-1 text-center" style={{ color: '#475569', fontSize: '0.8rem', lineHeight: '1.2' }}>Activities</span>
             <div className="lh-1">
-              <span className="d-block fw-bold text-dark" style={{ color: '#0f172a', fontSize: '0.8rem' }}>{currency}</span>
-              <strong className="fw-extrabold text-dark" style={{ color: '#0f172a', fontSize: '1rem' }}>
+              <span className="d-block fw-bold text-dark" style={{ color: '#0f172a', fontSize: '0.75rem' }}>{currency}</span>
+              <strong className="fw-extrabold text-dark" style={{ color: '#0f172a', fontSize: '0.95rem' }}>
                 {activities.toLocaleString()}
               </strong>
             </div>

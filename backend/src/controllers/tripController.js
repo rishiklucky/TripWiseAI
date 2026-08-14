@@ -75,13 +75,27 @@ exports.generateTrip = async (req, res, next) => {
   }
 };
 
-// @desc    Save generated trip to database
+const mongoose = require('mongoose');
+
+// @desc    Save generated trip to database (or update existing saved trip)
 // @route   POST /api/trips
 exports.saveTrip = async (req, res, next) => {
   try {
-    const tripData = { ...req.body, userId: req.user._id };
-    const savedTrip = await Trip.create(tripData);
-    res.status(201).json({ success: true, data: savedTrip });
+    const { _id, createdAt, updatedAt, __v, ...bodyData } = req.body;
+    const tripData = { ...bodyData, userId: req.user._id };
+
+    let savedTrip;
+    if (_id && mongoose.Types.ObjectId.isValid(_id)) {
+      savedTrip = await Trip.findByIdAndUpdate(_id, tripData, {
+        new: true,
+        upsert: true,
+        runValidators: true,
+      });
+    } else {
+      savedTrip = await Trip.create(tripData);
+    }
+
+    res.status(200).json({ success: true, data: savedTrip });
   } catch (error) {
     next(error);
   }

@@ -20,6 +20,72 @@ export const CreateTrip = () => {
     }
   }, [location.state]);
 
+  const getTodayStr = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const todayStr = getTodayStr();
+
+  // Reset past dates if loaded in draft
+  useEffect(() => {
+    if (draftWizard.startDate && draftWizard.startDate < todayStr) {
+      setDraftWizard((prev) => ({
+        ...prev,
+        startDate: todayStr,
+        endDate: !prev.endDate || prev.endDate < todayStr ? todayStr : prev.endDate,
+      }));
+    }
+  }, [todayStr]);
+
+  const handleStartDateChange = (val) => {
+    setError('');
+    setDraftWizard((prev) => {
+      let nextEnd = prev.endDate;
+      if (!nextEnd || nextEnd < val) {
+        nextEnd = val;
+      }
+      return { ...prev, startDate: val, endDate: nextEnd };
+    });
+  };
+
+  const handleEndDateChange = (val) => {
+    setError('');
+    setDraftWizard((prev) => ({ ...prev, endDate: val }));
+  };
+
+  const handleNextStep1 = () => {
+    setError('');
+    if (!draftWizard.origin || !draftWizard.origin.trim()) {
+      setError('Please enter a starting location.');
+      return;
+    }
+    if (!draftWizard.destination || !draftWizard.destination.trim()) {
+      setError('Please enter a destination.');
+      return;
+    }
+    if (!draftWizard.startDate) {
+      setError('Please select a start date.');
+      return;
+    }
+    if (draftWizard.startDate < todayStr) {
+      setError('Start date cannot be in the past. Please select today or a future date.');
+      return;
+    }
+    if (!draftWizard.endDate) {
+      setError('Please select an end date.');
+      return;
+    }
+    if (draftWizard.endDate < draftWizard.startDate) {
+      setError('End date cannot be earlier than the start date.');
+      return;
+    }
+    setStep(2);
+  };
+
   const availableInterests = [
     'Beaches', 'Nature', 'Adventure', 'Trekking', 'Food', 'Shopping',
     'Nightlife', 'Culture', 'History', 'Museums', 'Photography',
@@ -104,7 +170,7 @@ export const CreateTrip = () => {
           <div className="text-center mb-4">
             <h2 className="fw-bold">Build Your AI Trip Itinerary</h2>
             <p className="text-muted small">Step {step} of 4 — {step === 1 ? 'Trip Logistics' : step === 2 ? 'Budget & Style' : step === 3 ? 'Preferences' : 'Personalization'}</p>
-            
+
             <div className="wizard-progress-bar mx-auto" style={{ maxWidth: '400px' }}>
               <div className="wizard-progress-fill" style={{ width: `${(step / 4) * 100}%` }}></div>
             </div>
@@ -143,8 +209,9 @@ export const CreateTrip = () => {
                     <input
                       type="date"
                       className="form-control"
+                      min={todayStr}
                       value={draftWizard.startDate}
-                      onChange={(e) => handleInputChange('startDate', e.target.value)}
+                      onChange={(e) => handleStartDateChange(e.target.value)}
                     />
                   </div>
                   <div className="col-md-6">
@@ -152,8 +219,9 @@ export const CreateTrip = () => {
                     <input
                       type="date"
                       className="form-control"
+                      min={draftWizard.startDate || todayStr}
                       value={draftWizard.endDate}
-                      onChange={(e) => handleInputChange('endDate', e.target.value)}
+                      onChange={(e) => handleEndDateChange(e.target.value)}
                     />
                   </div>
 
@@ -197,7 +265,7 @@ export const CreateTrip = () => {
                 </div>
 
                 <div className="d-flex justify-content-end mt-4">
-                  <button className="btn btn-primary-tw" onClick={() => setStep(2)}>
+                  <button className="btn btn-primary-tw" onClick={handleNextStep1}>
                     Next: Budget & Style <i className="bi bi-arrow-right ms-1"></i>
                   </button>
                 </div>
@@ -389,6 +457,7 @@ export const CreateTrip = () => {
                       <option value="Honeymoon">Honeymoon</option>
                       <option value="Family Vacation">Family Vacation</option>
                       <option value="Solo Trip">Solo Trip</option>
+                      <option value="Friends Trip">Friends Trip</option>
                     </select>
                   </div>
 

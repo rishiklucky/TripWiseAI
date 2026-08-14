@@ -165,10 +165,12 @@ const tripSchema = new mongoose.Schema(
       type: String,
       default: 'gemini',
     },
-    isOptimized: {
-      type: Boolean,
-      default: false,
-    },
+    history: [{
+      itinerary: [daySchema],
+      budgetBreakdown: mongoose.Schema.Types.Mixed,
+      label: String,
+      createdAt: { type: Date, default: Date.now },
+    }],
   },
   {
     timestamps: true,

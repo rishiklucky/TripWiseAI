@@ -69,8 +69,17 @@ export const TripDetails = () => {
     try {
       const res = await tripService.optimizeTrip(trip, budget);
       if (res.success && res.data) {
-        setTrip(res.data);
-        setActiveTrip(res.data);
+        const historySnapshot = {
+          itinerary: trip.itinerary,
+          budgetBreakdown: trip.budgetBreakdown,
+          label: 'Before Budget Optimization',
+        };
+        const updatedTrip = {
+          ...res.data,
+          history: [...(trip.history || []), historySnapshot],
+        };
+        setTrip(updatedTrip);
+        setActiveTrip(updatedTrip);
       }
     } catch (err) {
       alert('Optimization failed: ' + (err.response?.data?.message || err.message));
@@ -84,8 +93,17 @@ export const TripDetails = () => {
     try {
       const res = await tripService.editTripAI(trip, instruction);
       if (res.success && res.data) {
-        setTrip(res.data);
-        setActiveTrip(res.data);
+        const historySnapshot = {
+          itinerary: trip.itinerary,
+          budgetBreakdown: trip.budgetBreakdown,
+          label: `Before: "${instruction}"`,
+        };
+        const updatedTrip = {
+          ...res.data,
+          history: [...(trip.history || []), historySnapshot],
+        };
+        setTrip(updatedTrip);
+        setActiveTrip(updatedTrip);
         setIsAskModalOpen(false);
       }
     } catch (err) {
@@ -93,6 +111,24 @@ export const TripDetails = () => {
     } finally {
       setLoadingAction('');
     }
+  };
+
+  const handleRevertVersion = () => {
+    const currentHistory = trip.history || [];
+    if (currentHistory.length === 0) return;
+
+    const previousSnapshot = currentHistory[currentHistory.length - 1];
+    const remainingHistory = currentHistory.slice(0, -1);
+
+    const revertedTrip = {
+      ...trip,
+      itinerary: previousSnapshot.itinerary,
+      budgetBreakdown: previousSnapshot.budgetBreakdown,
+      history: remainingHistory,
+    };
+
+    setTrip(revertedTrip);
+    setActiveTrip(revertedTrip);
   };
 
   const handleSaveTrip = async () => {
@@ -105,7 +141,9 @@ export const TripDetails = () => {
     setLoadingAction('saving');
     try {
       const res = await tripService.saveTrip(trip);
-      if (res.success) {
+      if (res.success && res.data) {
+        setTrip(res.data);
+        setActiveTrip(res.data);
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
       }
@@ -135,6 +173,16 @@ export const TripDetails = () => {
           </div>
 
           <div className="d-flex flex-wrap gap-2">
+            {trip.history && trip.history.length > 0 && (
+              <button
+                className="btn btn-warning btn-sm px-3 fw-bold"
+                onClick={handleRevertVersion}
+                title="Revert to previous version before AI edit"
+              >
+                <i className="bi bi-arrow-counterclockwise me-1"></i> Revert to Prev Version ({trip.history.length})
+              </button>
+            )}
+
             <button
               className="btn btn-teal-tw btn-sm px-3"
               onClick={handleOptimizeBudget}

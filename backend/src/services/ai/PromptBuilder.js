@@ -494,9 +494,10 @@ The JSON must follow EXACTLY this structure:
   ],
 
   "budgetBreakdown": {
+    "accommodation": 0,
+    "food": 0,
     "transportation": 0,
     "activities": 0,
-    "food": 0,
     "miscellaneous": 0,
     "totalEstimated": 0
   },

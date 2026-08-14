@@ -4,12 +4,24 @@ class BudgetService {
     let totalAccommodation = 0;
     let totalFood = 0;
     let totalActivities = 0;
+    const numDays = Math.max(1, days.length);
+    const targetNum = Number(userBudget) > 0 ? Number(userBudget) : 25000;
 
     days.forEach((day) => {
       // Activities
       if (Array.isArray(day.activities)) {
         day.activities.forEach((act) => {
-          totalActivities += Number(act.estimatedCost || 0);
+          const cost = Number(act.estimatedCost || 0);
+          const cat = (act.category || '').toLowerCase();
+          const title = (act.title || '').toLowerCase();
+
+          if (cat.includes('food') || cat.includes('dining') || cat.includes('meal') || title.includes('lunch') || title.includes('dinner') || title.includes('breakfast')) {
+            totalFood += cost;
+          } else if (cat.includes('transport') || cat.includes('travel') || cat.includes('cab') || cat.includes('transit') || title.includes('taxi') || title.includes('cab')) {
+            totalTransport += cost;
+          } else {
+            totalActivities += cost;
+          }
         });
       }
 
@@ -28,21 +40,31 @@ class BudgetService {
       }
     });
 
-    // Default accommodation estimation if not explicitly separated per day (approx 35% of total budget)
-    if (totalAccommodation === 0 && days.length > 0) {
-      totalAccommodation = Math.round(userBudget * 0.35);
+    // Realistic fallback allocations for categories if 0
+    if (totalAccommodation === 0 && numDays > 0) {
+      totalAccommodation = Math.round(targetNum * 0.35);
     }
 
-    const totalFoodAndActivities = totalFood + totalActivities;
-    const totalTransportAndAccom = totalTransport + totalAccommodation;
-    const rawTotal = totalTransportAndAccom + totalFoodAndActivities;
+    if (totalFood === 0 && numDays > 0) {
+      totalFood = Math.round(targetNum * 0.20);
+    }
+
+    if (totalTransport === 0 && numDays > 0) {
+      totalTransport = Math.round(targetNum * 0.10);
+    }
+
+    if (totalActivities === 0 && numDays > 0) {
+      totalActivities = Math.round(targetNum * 0.30);
+    }
+
+    const rawTotal = totalAccommodation + totalFood + totalTransport + totalActivities;
 
     // Buffer / Miscellaneous (~5% of subtotal)
     const miscellaneous = Math.round(rawTotal * 0.05);
     const totalEstimated = rawTotal + miscellaneous;
 
-    const difference = Math.abs(userBudget - totalEstimated);
-    const status = totalEstimated <= userBudget ? 'WITHIN_BUDGET' : 'OVER_BUDGET';
+    const difference = Math.abs(targetNum - totalEstimated);
+    const status = totalEstimated <= targetNum ? 'WITHIN_BUDGET' : 'OVER_BUDGET';
 
     return {
       transportation: Math.round(totalTransport),
@@ -51,7 +73,7 @@ class BudgetService {
       activities: Math.round(totalActivities),
       miscellaneous: Math.round(miscellaneous),
       totalEstimated: Math.round(totalEstimated),
-      targetBudget: Number(userBudget),
+      targetBudget: targetNum,
       difference: Math.round(difference),
       status,
       savingsFromOptimization: 0,
