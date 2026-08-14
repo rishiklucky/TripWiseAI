@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
+import html2pdf from 'html2pdf.js';
 
 export const ItineraryPDFModal = ({ isOpen, onClose, trip }) => {
+  const pdfRef = useRef(null);
+  const [downloading, setDownloading] = useState(false);
+
   if (!isOpen || !trip) return null;
 
   const {
@@ -20,6 +24,43 @@ export const ItineraryPDFModal = ({ isOpen, onClose, trip }) => {
     recommendations = [],
     generatedBy = 'Gemini',
   } = trip;
+
+  const handleDownloadPDF = async () => {
+    if (!pdfRef.current) return;
+    setDownloading(true);
+    try {
+      const element = pdfRef.current;
+      const cleanDestination = (destination || 'Trip').replace(/[^a-zA-Z0-9]/g, '_');
+
+      const opt = {
+        margin: [10, 10, 10, 10],
+        filename: `TripWise_Itinerary_${cleanDestination}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          letterRendering: true,
+        },
+        jsPDF: {
+          unit: 'mm',
+          format: 'a4',
+          orientation: 'portrait',
+        },
+        pagebreak: {
+          mode: ['css', 'legacy'],
+          avoid: ['tr', '.pdf-keep-together']
+        },
+      };
+
+      await html2pdf().set(opt).from(element).save();
+    } catch (err) {
+      console.error('PDF export failed:', err);
+      window.print();
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const handlePrint = () => {
     window.print();
@@ -79,10 +120,11 @@ export const ItineraryPDFModal = ({ isOpen, onClose, trip }) => {
               </div>
             </div>
 
-            <div className="d-flex align-items-center gap-3 ms-auto">
+            <div className="d-flex align-items-center gap-2 ms-auto">
               <button
                 className="btn text-white btn-sm px-3 py-2 fw-bold d-flex align-items-center gap-2 shadow-sm"
-                onClick={handlePrint}
+                onClick={handleDownloadPDF}
+                disabled={downloading}
                 style={{
                   background: 'linear-gradient(135deg, #0d9488 0%, #14b8a6 100%)',
                   border: 'none',
@@ -91,8 +133,17 @@ export const ItineraryPDFModal = ({ isOpen, onClose, trip }) => {
                   fontSize: '0.88rem',
                 }}
               >
-                <i className="bi bi-printer-fill"></i> Print / Save as PDF
+                <i className="bi bi-download"></i> {downloading ? 'Generating PDF...' : 'Download PDF File'}
               </button>
+
+              <button
+                className="btn btn-outline-light btn-sm px-3 py-2 fw-bold d-flex align-items-center gap-2"
+                onClick={handlePrint}
+                style={{ borderRadius: '10px', fontSize: '0.88rem' }}
+              >
+                <i className="bi bi-printer"></i> Print
+              </button>
+
               <button type="button" className="btn-close btn-close-white" onClick={onClose} aria-label="Close"></button>
             </div>
           </div>
@@ -100,6 +151,7 @@ export const ItineraryPDFModal = ({ isOpen, onClose, trip }) => {
           {/* Modal Body: PDF Live Preview & Printable Container */}
           <div className="modal-body p-3 p-md-4" style={{ backgroundColor: '#f1f5f9' }}>
             <div
+              ref={pdfRef}
               className="pdf-document-container bg-white p-4 p-md-5 mx-auto shadow-sm"
               style={{
                 maxWidth: '850px',
@@ -288,7 +340,7 @@ export const ItineraryPDFModal = ({ isOpen, onClose, trip }) => {
                         </thead>
                         <tbody>
                           {(day.activities || []).map((act, aIdx) => (
-                            <tr key={aIdx}>
+                            <tr key={aIdx} className="pdf-keep-together" style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                               <td className="ps-3 fw-bold text-primary" style={{ fontSize: '0.82rem' }}>{act.time}</td>
                               <td>
                                 <div className="fw-bold text-dark" style={{ fontSize: '0.88rem' }}>{act.title}</div>

@@ -113,10 +113,29 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Print Stylesheet for High-Quality PDF Export */
 @media print {
+  /* Completely hide the React root application and all background web page elements */
+  #root {
+    display: none !important;
+  }
+
   body {
     background-color: #ffffff !important;
     color: #000000 !important;
     font-family: 'Inter', system-ui, sans-serif !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Show ONLY the standalone PDF modal element containing the printable document */
+  .no-print-modal-wrap {
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
   nav,
@@ -130,16 +149,6 @@ h1, h2, h3, h4, h5, h6 {
   iframe,
   .alert-dismissible {
     display: none !important;
-  }
-
-  .no-print-modal-wrap {
-    position: absolute !important;
-    left: 0 !important;
-    top: 0 !important;
-    width: 100% !important;
-    background: #ffffff !important;
-    padding: 0 !important;
-    margin: 0 !important;
   }
 
   .modal-dialog,
@@ -159,7 +168,7 @@ h1, h2, h3, h4, h5, h6 {
     width: 100% !important;
     box-shadow: none !important;
     border: none !important;
-    padding: 0 !important;
+    padding: 10mm !important;
   }
 
   * {
@@ -167,7 +176,9 @@ h1, h2, h3, h4, h5, h6 {
     print-color-adjust: exact !important;
   }
 
-  .pdf-day-block {
+  tr,
+  .pdf-card-keep,
+  .pdf-keep-together {
     page-break-inside: avoid !important;
     break-inside: avoid !important;
   }

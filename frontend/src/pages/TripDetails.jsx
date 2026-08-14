@@ -1,5 +1,6 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import html2pdf from 'html2pdf.js';
 import { TripContext } from '../context/TripContext';
 import { AuthContext } from '../context/AuthContext';
 import { tripService } from '../services/tripService';
@@ -9,7 +10,7 @@ import { MapView } from '../components/MapView';
 import { HotelCard } from '../components/HotelCard';
 import { TransportCard } from '../components/TransportCard';
 import { AskTripWiseModal } from '../components/AskTripWiseModal';
-import { ItineraryPDFModal } from '../components/ItineraryPDFModal';
+import { ItineraryPDFDocument } from '../components/ItineraryPDFDocument';
 
 export const TripDetails = () => {
   const location = useLocation();
@@ -20,8 +21,9 @@ export const TripDetails = () => {
   const [trip, setTrip] = useState(location.state?.trip || activeTrip);
   const [loadingAction, setLoadingAction] = useState('');
   const [isAskModalOpen, setIsAskModalOpen] = useState(false);
-  const [isPDFModalOpen, setIsPDFModalOpen] = useState(false);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const pdfRef = useRef(null);
 
   useEffect(() => {
     if (location.state?.trip) {
@@ -156,6 +158,43 @@ export const TripDetails = () => {
     }
   };
 
+  const handleDownloadPDF = async () => {
+    if (!pdfRef.current) return;
+    setDownloadingPDF(true);
+    try {
+      const element = pdfRef.current;
+      const cleanDestination = (destination || 'Trip').replace(/[^a-zA-Z0-9]/g, '_');
+
+      const opt = {
+        margin: [10, 10, 10, 10],
+        filename: `TripWise_Itinerary_${cleanDestination}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          letterRendering: true,
+        },
+        jsPDF: {
+          unit: 'mm',
+          format: 'a4',
+          orientation: 'portrait',
+        },
+        pagebreak: {
+          mode: ['css', 'legacy'],
+          avoid: ['tr', '.pdf-keep-together'],
+        },
+      };
+
+      await html2pdf().set(opt).from(element).save();
+    } catch (err) {
+      console.error('PDF export failed:', err);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
+      setDownloadingPDF(false);
+    }
+  };
+
   return (
     <div className="container py-4">
       {/* Header Banner */}
@@ -209,8 +248,13 @@ export const TripDetails = () => {
               <i className="bi bi-bookmark-fill me-1"></i> {saveSuccess ? 'Saved!' : 'Save Trip'}
             </button>
 
-            <button className="btn btn-outline-light btn-sm px-3" onClick={() => setIsPDFModalOpen(true)}>
-              <i className="bi bi-file-earmark-pdf me-1"></i> Custom PDF / Print
+            <button
+              className="btn btn-outline-light btn-sm px-3 fw-bold d-flex align-items-center gap-2"
+              onClick={handleDownloadPDF}
+              disabled={downloadingPDF}
+            >
+              <i className="bi bi-file-earmark-pdf-fill"></i>
+              {downloadingPDF ? 'Generating PDF...' : 'Download PDF'}
             </button>
           </div>
         </div>
@@ -305,12 +349,10 @@ export const TripDetails = () => {
         loading={loadingAction === 'editing'}
       />
 
-      {/* Customized PDF Document & Print Preview Modal */}
-      <ItineraryPDFModal
-        isOpen={isPDFModalOpen}
-        onClose={() => setIsPDFModalOpen(false)}
-        trip={trip}
-      />
+      {/* Standalone Offscreen Printable PDF Render Element */}
+      <div style={{ position: 'fixed', left: '-9999px', top: '-9999px', width: '800px', zIndex: -100, opacity: 0, pointerEvents: 'none' }}>
+        <ItineraryPDFDocument ref={pdfRef} trip={trip} />
+      </div>
     </div>
   );
 };
