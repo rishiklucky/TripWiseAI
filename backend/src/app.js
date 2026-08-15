@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const { errorHandler, notFound } = require('./middleware/errorMiddleware');
 
 const authRoutes = require('./routes/authRoutes');
@@ -29,8 +30,21 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Serve frontend static assets in production
+const frontendDistPath = path.join(__dirname, '../../frontend/dist');
+app.use(express.static(frontendDistPath));
+
+// Fallback to React index.html for client-side routing
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+  res.sendFile(path.join(frontendDistPath, 'index.html'));
+});
+
 // Error Middleware
 app.use(notFound);
 app.use(errorHandler);
 
 module.exports = app;
+
